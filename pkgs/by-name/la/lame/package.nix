@@ -2,6 +2,8 @@
   lib,
   stdenv,
   fetchurl,
+  pkg-config,
+  libmpg123,
   nasmSupport ? true,
   nasm, # Assembly optimizations
   cpmlSupport ? true, # Compaq's fast math library
@@ -18,11 +20,11 @@
 
 stdenv.mkDerivation (finalAttrs: {
   pname = "lame";
-  version = "3.100";
+  version = "4.0";
 
   src = fetchurl {
     url = "mirror://sourceforge/lame/lame-${finalAttrs.version}.tar.gz";
-    sha256 = "07nsn5sy3a8xbmw1bidxnsj5fj6kg9ai04icmqw40ybkp353dznx";
+    hash = "sha256-PfUSTVrTqYMS/9e6aps2Iw5Pij5m084PQl4zbDLSFus=";
   };
 
   outputs = [
@@ -32,10 +34,12 @@ stdenv.mkDerivation (finalAttrs: {
   ]; # a small single header
   outputMan = "out";
 
-  nativeBuildInputs = [ ] ++ lib.optional nasmSupport nasm;
+  nativeBuildInputs =
+    [ pkg-config ]
+    ++ lib.optional nasmSupport nasm;
 
   buildInputs =
-    [ ]
+    [ libmpg123 ]
     #++ optional efenceSupport libefence
     #++ optional mp3xSupport gtk1
     ++ lib.optional sndfileFileIOSupport libsndfile;
@@ -53,12 +57,6 @@ stdenv.mkDerivation (finalAttrs: {
     (lib.enableFeature mp3rtpSupport "mp3rtp")
     (lib.optionalString debugSupport "--enable-debug=alot")
   ];
-
-  preConfigure = ''
-    # Prevent a build failure for 3.100 due to using outdated symbol list
-    # https://hydrogenaud.io/index.php/topic,114777.msg946373.html#msg946373
-    sed -i '/lame_init_old/d' include/libmp3lame.sym
-  '';
 
   meta = {
     description = "High quality MPEG Audio Layer III (MP3) encoder";
